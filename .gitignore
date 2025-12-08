@@ -1,0 +1,66 @@
+# ==================================================
+# Backend (Node + Express)
+# ==================================================
+backend/node_modules/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+
+# Backend environment files
+backend/.env
+backend/.env.local
+backend/.env.*.local
+
+# Backend build output (if using TypeScript or bundler)
+backend/dist/
+backend/build/
+
+# Backend logs
+backend/logs/
+backend/*.log
+
+# ==================================================
+# Frontend (React + Vite)
+# ==================================================
+frontend/node_modules/
+
+# Vite build output
+frontend/dist/
+
+# Vite environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
+frontend/.env.test
+
+# Local logs
+frontend/*.log
+
+# Editor settings folder inside frontend
+frontend/.vscode/
+frontend/.idea/
+
+# ==================================================
+# OS / Editor / Misc
+# ==================================================
+.DS_Store
+Thumbs.db
+
+# VS Code global
+.vscode/
+*.code-workspace
+
+# JetBrains global
+.idea/
+
+# Temporary files
+tmp/
+temp/
+*.pid
+*.pid.lock
+*.seed
+*.sqlite
+
+# Optional: local file uploads (if stored in project)
+uploads/
