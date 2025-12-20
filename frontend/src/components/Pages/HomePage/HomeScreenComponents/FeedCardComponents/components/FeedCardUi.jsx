@@ -1,112 +1,35 @@
-import { useState } from "react";
-import {
-  ThumbsUp,
-  MessageSquareMore,
-  Repeat2,
-  Send,
-} from "lucide-react";
-import ShareModal from "./ShareModal";
-import PostModal from "./PostModal";
+import React from "react";
+import { ThumbsUp, MessageSquareMore, Repeat2, Send } from "lucide-react";
+import ShareModal from "../ShareModal";
+import PostModal from "../PostModal";
+import { useFeedCardLogic } from "./FeedCardLogic";
+import { calculateStats, formatRepostLabel } from "./FeedCardService";
 
-const FeedCardComponent = ({
-  /* 🔹 Post type */
-  type = "REPOST", // NORMAL | REPOST
-  isEmbedded = false,
+const FeedCardUi = (props) => {
+  const {
+    type = "NORMAL",
+    isEmbedded = false,
+    repostedBy = "Unknown",
+    repostText = "",
+    originalPost = null,
+    userName = "User",
+    userBio = "",
+    userAvatar = "",
+    postText = "",
+    postImage = "",
+  } = props;
 
-  /* 🔁 Repost-only */
-  repostedBy,
-  repostText,
-  originalPost,
-
-  /* 👤 User */
-  userName,
-  userBio,
-  userAvatar,
-
-  /* 📝 Normal post */
-  postText,
-  postImage,
-
-  initialLikes = 0,
-  initialRepostCount = 0,
-  commentsFromDB = [],
-}) => {
-  /* 👍 Likes (ONLY for NORMAL post) */
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(initialLikes);
-
-  /* 💬 Comments (ONLY for NORMAL post) */
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState(commentsFromDB);
-  const [newComment, setNewComment] = useState("");
-
-  /* ✉️ Share */
-  const [openShare, setOpenShare] = useState(false);
-
-  /* 🔁 Repost */
-  const [repostCount, setRepostCount] = useState(initialRepostCount);
-  const [showRepostMenu, setShowRepostMenu] = useState(false);
-  const [repostedByMe, setRepostedByMe] = useState(false);
-  const [openRepostModal, setOpenRepostModal] = useState(false);
-
-  /* ---------- Handlers ---------- */
-
-  const handleLike = () => {
-    if (isEmbedded || type === "REPOST") return;
-    setLiked((p) => !p);
-    setLikeCount((p) => (liked ? p - 1 : p + 1));
-  };
-
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    setComments((p) => [
-      ...p,
-      {
-        id: Date.now(),
-        user: "You",
-        avatar: userAvatar,
-        text: newComment,
-      },
-    ]);
-    setNewComment("");
-  };
-
-  const handleQuickRepost = () => {
-    if (type === "REPOST" || repostedByMe) return;
-    setRepostedByMe(true);
-    setRepostCount((p) => p + 1);
-    setShowRepostMenu(false);
-  };
-
-  const handleRepostWithThoughts = () => {
-    if (type === "REPOST") return;
-    setShowRepostMenu(false);
-    setOpenRepostModal(true);
-  };
-
-  /* ---------- Stats source ---------- */
-  const stats = type === "REPOST" && originalPost
-    ? {
-        likes: originalPost.initialLikes ?? 0,
-        comments: originalPost.commentsFromDB?.length ?? 0,
-      }
-    : {
-        likes: likeCount,
-        comments: comments.length,
-      };
+  const { state, handlers } = useFeedCardLogic(props);
+  const stats = calculateStats(type, originalPost, state.likeCount, state.comments.length);
 
   return (
     <div className="bg-white shadow rounded-lg p-3 sm:p-4 mb-4 w-full max-w-2xl mx-auto space-y-3">
-
+      
       {/* 🔁 Repost badge */}
       {type === "REPOST" && (
         <div className="flex items-center text-xs text-gray-500 space-x-1">
           <Repeat2 className="w-4 h-4" />
-          <span>
-            {repostedBy === "You"
-              ? "You reposted this"
-              : `${repostedBy} reposted this`}
-          </span>
+          <span>{formatRepostLabel(repostedBy)}</span>
         </div>
       )}
 
@@ -145,11 +68,7 @@ const FeedCardComponent = ({
       {/* 🔁 Embedded original post */}
       {type === "REPOST" && originalPost && (
         <div className="border rounded-md p-2">
-          <FeedCardComponent
-            {...originalPost}
-            type="NORMAL"
-            isEmbedded
-          />
+          <FeedCardUi {...originalPost} type="NORMAL" isEmbedded={true} />
         </div>
       )}
 
@@ -163,11 +82,11 @@ const FeedCardComponent = ({
         </div>
 
         <div className="flex items-center space-x-3">
-          <span className="hover:underline cursor-pointer">
+          <span className="hover:underline cursor-pointer" onClick={() => handlers.setShowComments(p => !p)}>
             {stats.comments} comments
           </span>
           <span className="hover:underline cursor-pointer">
-            {repostCount} reposts
+            {state.repostCount} reposts
           </span>
         </div>
       </div>
@@ -180,15 +99,15 @@ const FeedCardComponent = ({
           <ActionButton
             icon={ThumbsUp}
             label="Like"
-            active={liked}
-            onClick={handleLike}
+            active={state.liked}
+            onClick={handlers.handleLike}
           />
 
           {type === "NORMAL" && (
             <ActionButton
               icon={MessageSquareMore}
               label="Comment"
-              onClick={() => setShowComments(p => !p)}
+              onClick={() => handlers.setShowComments((p) => !p)}
             />
           )}
 
@@ -197,21 +116,24 @@ const FeedCardComponent = ({
               <ActionButton
                 icon={Repeat2}
                 label="Repost"
-                active={repostedByMe}
-                onClick={() => setShowRepostMenu(p => !p)}
+                active={state.repostedByMe}
+                onClick={() => handlers.setShowRepostMenu((p) => !p)}
               />
 
-              {showRepostMenu && (
+              {state.showRepostMenu && (
                 <div className="absolute bottom-10 left-0 bg-white border shadow rounded-md w-52 z-10">
                   <button
                     className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                    onClick={handleQuickRepost}
+                    onClick={handlers.handleQuickRepost}
                   >
                     Repost
                   </button>
                   <button
                     className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                    onClick={handleRepostWithThoughts}
+                    onClick={() => {
+                      handlers.setShowRepostMenu(false);
+                      handlers.setOpenRepostModal(true);
+                    }}
                   >
                     Repost with your thoughts
                   </button>
@@ -223,15 +145,15 @@ const FeedCardComponent = ({
           <ActionButton
             icon={Send}
             label="Send"
-            onClick={() => setOpenShare(true)}
+            onClick={() => handlers.setOpenShare(true)}
           />
         </div>
       )}
 
-      {/* Comments */}
-      {type === "NORMAL" && showComments && (
+      {/* Comments section */}
+      {type === "NORMAL" && state.showComments && (
         <div className="space-y-3">
-          {comments.map((c) => (
+          {state.comments.map((c) => (
             <div key={c.id} className="flex space-x-2">
               <img src={c.avatar} alt={c.user} className="w-8 h-8 rounded-full" />
               <div className="bg-gray-100 rounded-lg px-3 py-2">
@@ -244,27 +166,28 @@ const FeedCardComponent = ({
           <div className="flex space-x-2">
             <img src={userAvatar} alt="you" className="w-8 h-8 rounded-full" />
             <input
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              value={state.newComment}
+              onChange={(e) => handlers.setNewComment(e.target.value)}
               placeholder="Write a comment..."
               className="flex-1 border rounded-full px-4 py-2 text-xs"
-              onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+              onKeyDown={(e) => e.key === "Enter" && handlers.handleAddComment()}
             />
           </div>
         </div>
       )}
 
-      {openShare && <ShareModal onClose={() => setOpenShare(false)} />}
-
-      {openRepostModal && (
+      {/* Modals */}
+      {state.openShare && <ShareModal onClose={() => handlers.setOpenShare(false)} />}
+      
+      {state.openRepostModal && (
         <PostModal
           isRepost
           originalPost={{ userName, userAvatar, postText, postImage }}
-          onClose={() => setOpenRepostModal(false)}
+          onClose={() => handlers.setOpenRepostModal(false)}
           onSubmitRepost={() => {
-            setRepostedByMe(true);
-            setRepostCount((p) => p + 1);
-            setOpenRepostModal(false);
+            handlers.setRepostedByMe(true);
+            handlers.setRepostCount(state.repostCount + 1);
+            handlers.setOpenRepostModal(false);
           }}
         />
       )}
@@ -283,4 +206,4 @@ const ActionButton = ({ icon: Icon, label, onClick, active }) => (
   </button>
 );
 
-export default FeedCardComponent;
+export default FeedCardUi;
