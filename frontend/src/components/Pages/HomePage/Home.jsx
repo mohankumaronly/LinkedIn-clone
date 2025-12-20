@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-import React from 'react'
-import PostCard from './HomeScreenComponents/PostComponents/PostCard'
-import FeedCardComponent from './HomeScreenComponents/FeedCardComponents/FeedCardComponent'
-
-const Home = () => {
-    return (
-        <div className='flex items-center flex-col space-y-10 bg-[#F4F2EE]'>
-           < PostCard/>
-           < FeedCardComponent />
-           < FeedCardComponent />
-           < FeedCardComponent />
-           < FeedCardComponent />
-           < FeedCardComponent />
-           < FeedCardComponent />
-=======
 import PostCard from './HomeScreenComponents/PostComponents/PostCard'
 import HomePageAppBar from './HomeScreenComponents/HomeAppBar/HomePageAppBar'
 import FeedCardUi from './HomeScreenComponents/FeedCardComponents/components/FeedCardUi'
@@ -120,7 +104,6 @@ const Home = () => {
                     ))}
                 </div>
             </div>
->>>>>>> dev
         </div>
     )
 }
