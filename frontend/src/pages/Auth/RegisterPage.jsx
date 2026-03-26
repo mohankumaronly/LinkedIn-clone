@@ -22,7 +22,8 @@ import {
     TrendingUp,
     Zap,
     Globe,
-    Info
+    Info,
+    AlertCircle
 } from 'lucide-react';
 
 import useInputText from "../../Hooks/InputHooks";
@@ -60,6 +61,13 @@ const RegisterPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [popupMessage, setPopupMessage] = useState({ show: false, message: '', type: 'info' });
+    const [demoPopup, setDemoPopup] = useState({ show: false, message: '', type: 'info' });
+
+    // Demo account credentials
+    const demoCredentials = {
+        email: "mohankumaronly81@gmail.com",
+        password: "123456789"
+    };
 
     useEffect(() => {
         const error = searchParams.get("error");
@@ -75,6 +83,19 @@ const RegisterPage = () => {
         alert(errorMap[error] || "Something went wrong.");
         navigate("/auth/login", { replace: true });
     }, [searchParams, navigate]);
+
+    // Auto-show demo popup when component mounts
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDemoPopup({
+                show: true,
+                message: '',
+                type: 'info'
+            });
+        }, 500);
+        
+        return () => clearTimeout(timer);
+    }, []);
 
     const {
         formData,
@@ -170,6 +191,30 @@ const RegisterPage = () => {
         }, 5000);
     };
 
+    const showDemoPopup = () => {
+        setDemoPopup({
+            show: true,
+            message: '',
+            type: 'info'
+        });
+    };
+
+    const closeDemoPopup = () => {
+        setDemoPopup({ show: false, message: '', type: 'info' });
+    };
+
+    const navigateToLoginWithDemo = () => {
+        // Navigate to login page with state that will auto-fill demo credentials
+        navigate('/auth/login', { 
+            state: { 
+                useDemoCredentials: true,
+                demoEmail: demoCredentials.email,
+                demoPassword: demoCredentials.password
+            }
+        });
+        closeDemoPopup();
+    };
+
     const recentActivities = [
         { user: "Alex Chen", role: "Frontend Dev", action: "shared a new React project", time: "2m ago", avatar: "AC" },
         { user: "Sarah Johnson", role: "ML Engineer", action: "posted about AI advancements", time: "15m ago", avatar: "SJ" },
@@ -181,6 +226,7 @@ const RegisterPage = () => {
         <>
             {isLoading && <Loading />}
             <CommonLayout>
+                {/* Development Popup */}
                 {popupMessage.show && (
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
@@ -206,10 +252,86 @@ const RegisterPage = () => {
                     </motion.div>
                 )}
 
+                {/* Demo Account Popup */}
+                {demoPopup.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{ type: "spring", damping: 20 }}
+                        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4"
+                    >
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg shadow-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+                                    <AlertCircle className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-purple-800 mb-2 flex items-center gap-2">
+                                        Demo Account Available! 🎯
+                                        <span className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">Quick Test</span>
+                                    </h3>
+                                    <div className="bg-white rounded-lg p-3 mb-3 border border-purple-100">
+                                        <p className="text-sm font-medium text-gray-700 mb-2">
+                                            Want to test the app without creating an account?
+                                        </p>
+                                        <p className="text-xs text-gray-600 mb-2">
+                                            We have a demo account ready for you to explore all features:
+                                        </p>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
+                                                <Mail className="w-3.5 h-3.5 text-gray-500" />
+                                                <span className="font-mono text-gray-600">{demoCredentials.email}</span>
+                                                <button
+                                                    onClick={() => navigator.clipboard.writeText(demoCredentials.email)}
+                                                    className="ml-auto text-gray-400 hover:text-gray-600 text-xs"
+                                                    title="Copy email"
+                                                >
+                                                    📋 Copy
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
+                                                <Lock className="w-3.5 h-3.5 text-gray-500" />
+                                                <span className="font-mono text-gray-600">{demoCredentials.password}</span>
+                                                <button
+                                                    onClick={() => navigator.clipboard.writeText(demoCredentials.password)}
+                                                    className="ml-auto text-gray-400 hover:text-gray-600 text-xs"
+                                                    title="Copy password"
+                                                >
+                                                    📋 Copy
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={navigateToLoginWithDemo}
+                                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                                        >
+                                            <User className="w-4 h-4" />
+                                            Go to Login with Demo
+                                        </button>
+                                        <button
+                                            onClick={closeDemoPopup}
+                                            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-purple-600 mt-3 flex items-center gap-1">
+                                        <Info size={12} />
+                                        ℹ️ Creating a new account requires email verification. Use the demo account for instant access!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="min-h-screen py-8 px"
+                    className="min-h-screen py-8 px-4"
                 >
                     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                         <motion.div
@@ -226,6 +348,23 @@ const RegisterPage = () => {
                                     <h1 className="text-2xl font-bold text-slate-800">DevConnect</h1>
                                     <p className="text-sm text-slate-500">Where developers grow together</p>
                                 </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm mb-6">
+                                <h2 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    Start Your Journey! 🚀
+                                    <Sparkles size={16} className="text-yellow-500" />
+                                </h2>
+                                <p className="text-sm text-slate-600">
+                                    Join thousands of developers sharing knowledge and building amazing projects.
+                                </p>
+                                <button
+                                    onClick={showDemoPopup}
+                                    className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                    <User className="w-3 h-3" />
+                                    Try Demo Account
+                                </button>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -347,6 +486,15 @@ const RegisterPage = () => {
                                         <p className="text-sm text-slate-500">
                                             Connect with developers and share your progress
                                         </p>
+                                        
+                                        {/* Mobile Demo Account Button */}
+                                        <button
+                                            onClick={showDemoPopup}
+                                            className="mt-3 lg:hidden inline-flex items-center gap-2 text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
+                                        >
+                                            <User className="w-3 h-3" />
+                                            Try Demo Account
+                                        </button>
                                     </div>
 
                                     <form onSubmit={handleSubmit} className="space-y-4">

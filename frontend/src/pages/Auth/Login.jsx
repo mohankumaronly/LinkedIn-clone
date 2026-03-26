@@ -17,7 +17,8 @@ import {
     Zap,
     Globe,
     Sparkles,
-    Info
+    Info,
+    User
 } from 'lucide-react';
 
 import useInputText from '../../Hooks/InputHooks';
@@ -58,6 +59,13 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [popupMessage, setPopupMessage] = useState({ show: false, message: '', type: 'info' });
+    const [demoPopup, setDemoPopup] = useState({ show: false, message: '', type: 'info' });
+
+    // Demo account credentials
+    const demoCredentials = {
+        email: "mohankumaronly81@gmail.com",
+        password: "123456789"
+    };
 
     useEffect(() => {
         const error = searchParams.get("error");
@@ -74,7 +82,21 @@ const Login = () => {
         navigate("/auth/login", { replace: true });
     }, [searchParams, navigate]);
 
-    const { formData, onChange, reset } = useInputText({
+    // Auto-show demo popup when component mounts
+    useEffect(() => {
+        // Show demo popup automatically when login page loads
+        const timer = setTimeout(() => {
+            setDemoPopup({
+                show: true,
+                message: '',
+                type: 'info'
+            });
+        }, 500); // Small delay for better UX
+        
+        return () => clearTimeout(timer);
+    }, []); // Empty dependency array means this runs once when component mounts
+
+    const { formData, onChange, reset, setFormData } = useInputText({
         email: "",
         password: "",
     });
@@ -144,6 +166,28 @@ const Login = () => {
         }, 5000);
     };
 
+    const showDemoPopup = () => {
+        setDemoPopup({
+            show: true,
+            message: '',
+            type: 'info'
+        });
+    };
+
+    const fillDemoCredentials = () => {
+        setFormData({
+            email: demoCredentials.email,
+            password: demoCredentials.password
+        });
+        setDemoPopup({ show: false, message: '', type: 'info' });
+        // Clear any existing errors
+        setErrors({});
+    };
+
+    const closeDemoPopup = () => {
+        setDemoPopup({ show: false, message: '', type: 'info' });
+    };
+
     const recentActivities = [
         { user: "Alex Chen", role: "Frontend Dev", action: "shared a new React project", time: "2m ago", avatar: "AC" },
         { user: "Sarah Johnson", role: "ML Engineer", action: "posted about AI advancements", time: "15m ago", avatar: "SJ" },
@@ -155,6 +199,7 @@ const Login = () => {
         <>
             {isLoading && <Loading />}
             <CommonLayout>
+                {/* Development Popup */}
                 {popupMessage.show && (
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
@@ -163,7 +208,7 @@ const Login = () => {
                         className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4"
                     >
                         <div className="bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 flex items-start gap-3">
-                            <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                            <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                             <div className="flex-1">
                                 <p className="text-sm text-blue-700">{popupMessage.message}</p>
                                 <p className="text-xs text-blue-500 mt-1">
@@ -180,10 +225,85 @@ const Login = () => {
                     </motion.div>
                 )}
 
+                {/* Demo Account Popup - Auto shows on page load */}
+                {demoPopup.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{ type: "spring", damping: 20 }}
+                        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4"
+                    >
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg shadow-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                    <User className="w-5 h-5 text-green-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-green-800 mb-2 flex items-center gap-2">
+                                        Demo Account Available! 🎉
+                                        <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">Test Now</span>
+                                    </h3>
+                                    <div className="bg-white rounded-lg p-3 mb-3 border border-green-100">
+                                        <p className="text-sm font-medium text-gray-700 mb-2">Use these credentials to test the app:</p>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <Mail className="w-3.5 h-3.5 text-gray-500" />
+                                                <span className="font-mono text-gray-600">{demoCredentials.email}</span>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(demoCredentials.email);
+                                                        // Optional: Show a small tooltip
+                                                    }}
+                                                    className="ml-auto text-gray-400 hover:text-gray-600"
+                                                    title="Copy email"
+                                                >
+                                                    📋
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <Lock className="w-3.5 h-3.5 text-gray-500" />
+                                                <span className="font-mono text-gray-600">{demoCredentials.password}</span>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(demoCredentials.password);
+                                                    }}
+                                                    className="ml-auto text-gray-400 hover:text-gray-600"
+                                                    title="Copy password"
+                                                >
+                                                    📋
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={fillDemoCredentials}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all transform hover:scale-[1.02]"
+                                        >
+                                            Use Demo Account
+                                        </button>
+                                        <button
+                                            onClick={closeDemoPopup}
+                                            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-green-600 mt-3 flex items-center gap-1">
+                                        <Info size={12} />
+                                        ℹ️ Note: Creating a new account requires email verification. Use this demo account for quick testing!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="min-h-screen py-8 px"
+                    className="min-h-screen py-8 px-4"
                 >
                     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                         
@@ -211,6 +331,13 @@ const Login = () => {
                                 <p className="text-sm text-slate-600">
                                     Sign in to continue your journey with the developer community.
                                 </p>
+                                <button
+                                    onClick={showDemoPopup}
+                                    className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                    <User className="w-3 h-3" />
+                                    Try Demo Account
+                                </button>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -276,7 +403,7 @@ const Login = () => {
                                             className="p-3 hover:bg-slate-50 transition-colors"
                                         >
                                             <div className="flex items-start gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                                                     {activity.avatar}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -332,6 +459,15 @@ const Login = () => {
                                         <p className="text-sm text-slate-500">
                                             Sign in to continue your developer journey
                                         </p>
+                                        
+                                        {/* Mobile Demo Account Button */}
+                                        <button
+                                            onClick={showDemoPopup}
+                                            className="mt-3 lg:hidden inline-flex items-center gap-2 text-xs font-medium text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors"
+                                        >
+                                            <User className="w-3 h-3" />
+                                            Try Demo Account
+                                        </button>
                                     </div>
 
                                     <form onSubmit={handleSubmit} className="space-y-4">
