@@ -1,7 +1,11 @@
 package com.rockranger.media.authentication.entity;
 
+import com.rockranger.media.profile.entity.Profile;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -29,8 +33,14 @@ public class User {
     private boolean emailVerified = false;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserStatus status = UserStatus.ACTIVE;
+    @Column(name = "account_status", nullable = false, length = 30)
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
+    @Column(name = "deactivated_at")
+    private Instant deactivatedAt;
+
+    @Column(name = "scheduled_deletion_at")
+    private Instant scheduledDeletionAt;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -41,6 +51,17 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Profile profile;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EmailVerificationOtp> emailVerificationOtps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PasswordResetOtp> passwordResetOtps = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -53,7 +74,6 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
 
     public Long getId() {
         return id;
@@ -95,12 +115,28 @@ public class User {
         this.emailVerified = emailVerified;
     }
 
-    public UserStatus getStatus() {
-        return status;
+    public AccountStatus getAccountStatus() {
+        return accountStatus;
     }
 
-    public void setStatus(UserStatus status) {
-        this.status = status;
+    public void setAccountStatus(AccountStatus accountStatus) {
+        this.accountStatus = accountStatus;
+    }
+
+    public Instant getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(Instant deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
+    }
+
+    public Instant getScheduledDeletionAt() {
+        return scheduledDeletionAt;
+    }
+
+    public void setScheduledDeletionAt(Instant scheduledDeletionAt) {
+        this.scheduledDeletionAt = scheduledDeletionAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -117,5 +153,37 @@ public class User {
 
     public void setLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public Profile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(Profile profile) {
+        this.profile = profile;
+    }
+
+    public List<RefreshToken> getRefreshTokens() {
+        return refreshTokens;
+    }
+
+    public void setRefreshTokens(List<RefreshToken> refreshTokens) {
+        this.refreshTokens = refreshTokens;
+    }
+
+    public List<EmailVerificationOtp> getEmailVerificationOtps() {
+        return emailVerificationOtps;
+    }
+
+    public void setEmailVerificationOtps(List<EmailVerificationOtp> emailVerificationOtps) {
+        this.emailVerificationOtps = emailVerificationOtps;
+    }
+
+    public List<PasswordResetOtp> getPasswordResetOtps() {
+        return passwordResetOtps;
+    }
+
+    public void setPasswordResetOtps(List<PasswordResetOtp> passwordResetOtps) {
+        this.passwordResetOtps = passwordResetOtps;
     }
 }

@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -160,6 +161,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (!user.isEmailVerified()) {
             throw new EmailNotVerifiedException("Email is not verified. Please verify your email first.");
+        }
+
+        if (user.getAccountStatus() == AccountStatus.SUSPENDED) {
+            throw new AccountSuspendedException("Your account has been suspended. Please contact support.");
+        }
+
+        if (user.getAccountStatus() == AccountStatus.DELETED) {
+            throw new InvalidCredentialsException("Invalid email or password.");
+        }
+
+        // Instagram-style auto-reactivation if account was deactivated
+        if (user.getAccountStatus() == AccountStatus.DEACTIVATED) {
+            user.setAccountStatus(AccountStatus.ACTIVE);
+            user.setDeactivatedAt(null);
+        }
+
+        // Instagram-style cancellation of pending deletion if within grace period
+        if (user.getAccountStatus() == AccountStatus.PENDING_DELETION) {
+            if (user.getScheduledDeletionAt() != null && user.getScheduledDeletionAt().isBefore(Instant.now())) {
+                user.setAccountStatus(AccountStatus.DELETED);
+                userRepository.save(user);
+                throw new InvalidCredentialsException("Account has been permanently deleted.");
+            } else {
+                user.setAccountStatus(AccountStatus.ACTIVE);
+                user.setScheduledDeletionAt(null);
+            }
         }
 
         user.setLastLoginAt(LocalDateTime.now());
@@ -378,11 +405,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private UserResponse mapToUserResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setFullName(user.getFullName());
-        response.setEmail(user.getEmail());
-        response.setEmailVerified(user.isEmailVerified());
-        return response;
+        return UserResponse.fromEntity(user);
     }
 }

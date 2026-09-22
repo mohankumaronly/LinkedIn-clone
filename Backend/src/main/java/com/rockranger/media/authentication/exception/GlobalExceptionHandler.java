@@ -1,5 +1,6 @@
 package com.rockranger.media.authentication.exception;
 
+import com.rockranger.media.profile.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -54,6 +55,18 @@ public class GlobalExceptionHandler {
                 .body(Map.of("status", "error", "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(AccountSuspendedException.class)
+    public ResponseEntity<Map<String, String>> handleAccountSuspended(AccountSuspendedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccountDeactivatedException.class)
+    public ResponseEntity<Map<String, String>> handleAccountDeactivated(AccountDeactivatedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -80,6 +93,36 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailSendingException.class)
     public ResponseEntity<Map<String, String>> handleEmailSending(EmailSendingException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProfileAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleProfileAlreadyExists(ProfileAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProfileNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleProfileNotFound(ProfileNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UsernameAlreadyTakenException.class)
+    public ResponseEntity<Map<String, String>> handleUsernameAlreadyTaken(UsernameAlreadyTakenException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidImageException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidImage(InvalidImageException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("status", "error", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ImageUploadException.class)
+    public ResponseEntity<Map<String, String>> handleImageUpload(ImageUploadException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("status", "error", "message", ex.getMessage()));
     }

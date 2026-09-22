@@ -1,0 +1,21 @@
+package com.rockranger.media.profile.repository;
+
+import com.rockranger.media.profile.entity.Profile;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface ProfileRepository extends JpaRepository<Profile, Long> {
+
+    Optional<Profile> findByUserId(Long userId);
+
+    Optional<Profile> findByUsername(String username);
+
+    boolean existsByUserId(Long userId);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByUsernameAndIdNot(String username, Long id);
+}

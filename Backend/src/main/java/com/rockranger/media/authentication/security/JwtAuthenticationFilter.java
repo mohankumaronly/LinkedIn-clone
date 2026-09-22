@@ -1,5 +1,6 @@
 package com.rockranger.media.authentication.security;
 
+import com.rockranger.media.authentication.entity.AccountStatus;
 import com.rockranger.media.authentication.entity.User;
 import com.rockranger.media.authentication.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -63,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Optional<User> userOptional = userRepository.findByEmail(userEmail);
                 if (userOptional.isPresent()) {
                     User user = userOptional.get();
-                    if (jwtService.isTokenValid(jwt, user.getEmail())) {
+                    if (jwtService.isTokenValid(jwt, user.getEmail()) && user.getAccountStatus() == AccountStatus.ACTIVE) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 user,
                                 null,

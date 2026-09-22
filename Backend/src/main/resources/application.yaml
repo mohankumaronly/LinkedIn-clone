@@ -2,6 +2,11 @@ spring:
   application:
     name: Social Media
 
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -28,6 +33,11 @@ spring:
           starttls:
             enable: true
 
+server:
+  tomcat:
+    connection-timeout: 300000
+    max-swallow-size: 100MB
+
 jwt:
   secret: ${JWT_SECRET:9a4f2c8d7b6e5a4f3c2b1a0d9e8f7c6b5a4f3c2b1a0d9e8f7c6b5a4f3c2b1a0d}
   expiration-ms: ${JWT_EXPIRATION_MS:86400000}
@@ -41,3 +51,8 @@ app:
     same-site: ${COOKIE_SAME_SITE:Lax}
     domain: ${COOKIE_DOMAIN:}
     max-age-seconds: ${COOKIE_MAX_AGE:86400}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_SECRET_KEY:}
